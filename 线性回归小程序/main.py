@@ -12,8 +12,8 @@ def generate_data():#随机生成测试数据
         x1 = np.random.normal(0.0, 0.55)
         y1 = x1 * 0.1 + 0.3 + np.random.normal(0.0, 0.03)#以函数y = 0.1x+0.3为基准生成点数据
         vector_set.append([x1, y1])
-        x_data = [v[0] for v in vector_set]
-        y_data = [v[1] for v in vector_set]
+        x_data = [v[0] for v in vector_set]#就是vector_set里面的所有x1组成的列表
+        y_data = [v[1] for v in vector_set]#同上
         plt.scatter(x_data, y_data, c = 'r')
     #plt.show()
     return x_data, y_data
