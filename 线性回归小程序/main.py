@@ -26,8 +26,8 @@ def train(x_data, y_data):
     optimizer = tf.train.GradientDescentOptimizer(0.5)#设置学习率为0.5
     train = optimizer.minimize(loss, name = 'train')#梯度下降??? 还没搞懂
 
-    sess = tf.Session()#开启任务，为了方便
-    init = tf.global_variables_initializer()
+    sess = tf.Session()#开启任务，为了方便,起了别名sess
+    init = tf.global_variables_initializer()#同上
     sess.run(init)#初始化全部变量
 
     print('w = ', sess.run(w), 'b = ', sess.run(b), 'loss = ', sess.run(loss))#这是随机生成的w和b
