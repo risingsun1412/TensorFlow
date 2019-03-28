@@ -1,7 +1,7 @@
 import numpy as np
 import os
 import tensorflow as tf
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2' #关闭tensorflow输出硬件信息
 
