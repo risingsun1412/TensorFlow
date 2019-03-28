@@ -24,7 +24,7 @@ def train(x_data, y_data):
     y = w * x_data + b#根据随机生成的w, x_data, b计算y
     loss = tf.reduce_mean(tf.square(y - y_data), name = 'loss')#tf.square()平方,tf.reduce_mean(不指定axis的情况下)就是计算平均值,所以loss就是标准差
     optimizer = tf.train.GradientDescentOptimizer(0.5)#设置学习率为0.5
-    train = optimizer.minimize(loss, name = 'train')#梯度下降??? 还没搞懂
+    train = optimizer.minimize(loss, name = 'train')#使用优化器通过损失函数调整神经网络权值
 
     sess = tf.Session()#开启任务，为了方便,起了别名sess
     init = tf.global_variables_initializer()#同上
