@@ -16,7 +16,7 @@ def start_to_train():
     train = opt.minimize(cross_entropy)
     init = tf.global_variables_initializer()#初始化所有变量
     with tf.Session() as sess:#python上下文管理器
-        init.run()
+        sess.run(init)
         for i in range(3000):
             batch_xs, batch_ys = mnist.train.next_batch(100)
             sess.run(train, feed_dict = {x: batch_xs, y_: batch_ys})#使用feed_dict = {}喂数据
