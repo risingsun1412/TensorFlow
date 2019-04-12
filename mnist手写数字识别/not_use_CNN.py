@@ -2,6 +2,7 @@ import numpy as np
 import tensorflow as tf
 from os import environ, path
 from tensorflow.examples.tutorials.mnist import input_data
+from PIL import Image
 
 environ['TF_CPP_MIN_LOG_LEVEL'] = '2' # 关闭tensorflow输出硬件信息
 
