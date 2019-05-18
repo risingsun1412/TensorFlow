@@ -1,55 +1,50 @@
-import numpy as np
 import tensorflow as tf
-from os import environ, path
+from os import environ
 from tensorflow.examples.tutorials.mnist import input_data
 
-environ['TF_CPP_MIN_LOG_LEVEL'] = '2' # 关闭tensorflow输出硬件信息
+environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-def get_w(shape, name):
-    w = tf.truncated_normal(shape, stddev = 0.1)
-    return tf.Variable(w, name = name)
-
-def get_b(shape, name):
-    b = tf.constant(0.1, shape = shape)
-    return tf.Variable(b, name = name)
+def get_w(shape):
+    return tf.Variable(tf.truncated_normal(shape = shape, stddev = 0.1))
+def get_b(shape):
+    return tf.Variable(tf.constant(0.1, shape = shape))
 def conv2d(x, w):
-    return tf.nn.conv2d(x, w, strides = [1, 1, 1, 1], padding = 'SAME')
-def max_pool_2x2(x):
-    return tf.nn.max_pool(x, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'SAME')
-
+    return tf.nn.conv2d(x, w, strides = [1,1,1,1], padding = "SAME")
+def max_pool(x):
+    return tf.nn.max_pool(x, ksize = [1,2,2,1], strides = [1,2,2,1], padding = "SAME")
 def Main():
-    x = tf.placeholder(tf.float32, [None, 784])
-    y_true = tf.placeholder(tf.float32, [None, 10])
-    
-    # 第一层卷积
-    conv1_w = get_w([5, 5, 1, 32], 'conv1_w')
-    conv1_b = get_b([32], 'conv1_b')
-    x_ = tf.reshape(x, [-1, 28, 28, 1])
-    conv1_relu = tf.nn.relu(conv2d(x_, conv1_w) + conv1_b)
-    conv1_pool = max_pool_2x2(conv1_relu)
+    x = tf.placeholder(tf.float32, shape = [None, 28*28])
+    y_true = tf.placeholder(tf.float32, shape = [None, 10])
 
-    # 第二层卷积
-    conv2_w = get_w([5, 5, 32, 64], 'conv2_w')
-    conv2_b = get_b([64], 'conv2_b')
-    conv2_relu = tf.nn.relu(conv2d(conv1_pool, conv2_w) + conv2_b)
-    conv2_pool = max_pool_2x2(conv2_relu)
+    conv1_w = get_w([5,5,1,32])
+    conv1_b = get_b([32])
+    x_reshape = tf.reshape(x, [-1,28,28,1])
+    conv1_conv = conv2d(x_reshape, conv1_w)
+    conv1_relu = tf.nn.relu(conv1_conv + conv1_b)
+    conv1_out = max_pool(conv1_relu)
 
-    # 全连接层
-    fc1_w = get_w([7*7*64, 512], 'fc1_w')
-    fc1_b = get_b([512], 'fc1_b')
-    conv2_pool_flat = tf.reshape(conv2_pool, [-1, 7*7*64])
-    fc1_relu = tf.nn.relu(tf.matmul(conv2_pool_flat, fc1_w) + fc1_b)
+    conv2_w = get_w([5,5,32,64])
+    conv2_b = get_b([64])
+    conv2_conv = conv2d(conv1_out, conv2_w)
+    conv2_relu = tf.nn.relu(conv2_conv + conv2_b)
+    conv2_out = max_pool(conv2_relu)
 
-    # Dropout减少过拟合
-    keep_prob = tf.placeholder('float')# keep_prob: 每个神经元不工作的概率
-    fc1_dropout = tf.nn.dropout(fc1_relu, keep_prob)
+    fc1_w = get_w([7*7*64,512])
+    fc1_b = get_b([512])
+    conv2_out_reshape = tf.reshape(conv2_out, [-1,7*7*64])
+    fc1_matmul = tf.matmul(conv2_out_reshape, fc1_w)
+    fc1_relu = tf.nn.relu(fc1_matmul + fc1_b)
 
-    # softmax层
-    fc2_w = get_w([512, 10], 'fc2_w')
-    fc2_b = get_b([10], 'fc2_b')
-    y_predict = tf.nn.softmax(tf.matmul(fc1_dropout, fc2_w) + fc2_b)
+    fc2_w = get_w([512,1024])
+    fc2_b = get_b([1024])
+    fc2_matmul = tf.matmul(fc1_relu, fc2_w)
+    fc2_relu = tf.nn.relu(fc2_matmul + fc2_b)
 
-    # loss = 交叉熵
+    sm_w = get_w([1024,10])
+    sm_b = get_b([10])
+    sm_matmul = tf.matmul(fc2_relu, sm_w)
+    y_predict = tf.nn.softmax(sm_matmul + sm_b)
+
     loss = tf.reduce_mean(-tf.reduce_sum(y_true*tf.log(y_predict)))
     opt = tf.train.AdamOptimizer(1e-4)
     train = opt.minimize(loss)
@@ -60,14 +55,14 @@ def Main():
     with tf.Session() as sess:
         sess.run(init)
         mnist = input_data.read_data_sets('C:/Users/rising_sun/Desktop/neural_network/MNIST_data/', one_hot=True)
-        for i in range(10000):
+        for i in range(3000):
             batch = mnist.train.next_batch(50)
-            if i % 100 == 0:
-                train_accuracy = sess.run(accuracy, feed_dict = {x:batch[0], y_true:batch[1], keep_prob:1.0})
-                print('After %d steps, training accuracy is %.2f %%'%(i, train_accuracy * 100))
-            sess.run(train, feed_dict = {x: batch[0], y_true: batch[1], keep_prob: 0.5})
-            
-        print('test accuracy on mnist is %.2f %%'%(sess.run(accuracy, feed_dict={x: mnist.test.images, y_true: mnist.test.labels, keep_prob: 1.0}) * 100))# 最终模型在mnist数据集上的正确率
+            if i%100 == 0:
+                print('第%d轮训练后,正确率为%.2f %%'%(i, 100*sess.run(accuracy, feed_dict = {x: batch[0], y_true: batch[1]})))
+            sess.run(train, feed_dict = {x: batch[0], y_true: batch[1]})
+
+        print('最终在测试集上的正确率为%.2f %%'%(100*sess.run(accuracy, feed_dict = {x: mnist.test.images, y_true: mnist.test.labels})))
         
-if __name__ == "__main__":
+
+if __name__ == '__main__':
     Main()
